@@ -1,0 +1,11 @@
+{
+  "author": "ajoaoff",
+  "username": "amlight",
+  "name": "coloring",
+  "description": "NApp to color a network topology",
+  "version": "0.1",
+  "napp_dependencies": ["kytos/of_flow_manager", "kytos/of_lldp", "kytos/of_topology" ],
+  "license": "GPL3.0",
+  "tags": ["experimental", "coloring"],
+  "url": "http://github.com/amlight/kytos/"
+}
