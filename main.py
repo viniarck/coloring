@@ -25,7 +25,7 @@ class Main(KytosNApp):
 
         The setup method is automatically called by the controller when your
         application is loaded. """
-        self._flow_mgr_url = 'http://localhost:8181/kytos/flow-manager/flows/%s'
+        self._flow_mgr_url = 'http://localhost:8181/api/kytos/of_flow_manager/flows/%s'
         self._switches = dict()
         self.register_rest()
         self.instantiate_switches = Switches(self.controller.switches)
