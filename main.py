@@ -1,12 +1,12 @@
 """Main module of amlight/coloring Kytos Network Application.
 
-NApp to color the network topology
+NApp to color a network topology
 """
 
+from kytos.core import KytosEvent, KytosNApp, log, rest
 import requests
 import json
 import struct
-from kytos.core import KytosNApp, log
 from kytos.core.flow import Flow
 from kytos.core.helpers import listen_to
 from kytos.core.switch import Interface
@@ -109,14 +109,14 @@ class Main(KytosNApp):
 
     @staticmethod
     def color_to_field(color, field='dl_src'):
-        """Gets the color number and returns it in a format suitable for the field
-        Args:
-            color: The color of the switch (integer)
-            field: The field that will be used to create the flow for the color
-
-        Returns:
-             A representation of the color suitable for the given field
         """
+        Gets the color number and returns it in a format suitable for the field
+        :param color: The color of the switch (integer)
+        :param field: The field that will be used to create the flow for the 
+        color
+        :return: A representation of the color suitable for the given field
+        """
+        # TODO: calculate field value for other fields
         if field == 'dl_src' or field == 'dl_dst':
             c = color & 0xffffffffffffffff
             int_mac = struct.pack('!Q', c)[2:]
@@ -126,7 +126,8 @@ class Main(KytosNApp):
             c = color & 0xffffffff
             int_ip = struct.pack('!L', c)
             return '.'.join(map(str, int_ip))
-        if field == 'in_port' or field == 'dl_vlan' or field == 'tp_src' or field == 'tp_dst':
+        if field == 'in_port' or field == 'dl_vlan' \
+                or field == 'tp_src' or field == 'tp_dst':
             c = color & 0xffff
             return c
         if field == 'nw_tos' or field == 'nw_proto':
