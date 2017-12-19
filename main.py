@@ -43,7 +43,6 @@ class Main(KytosNApp):
     @listen_to('kytos.topology.updated')
     def topology_updated(self, event):
         topology = event.content['topology']
-        log.info('Updating')
         self.update_colors(
             [{'source': l[0], 'target': l[1]} for l in topology.links]
         )
@@ -78,10 +77,8 @@ class Main(KytosNApp):
         # Create the flows for each neighbor of each switch and installs it
         # if not already installed
         for dpid, switch_dict in self.switches.items():
-            log.debug('DPID: %s, %s' % (dpid, switch_dict))
             for neighbor in switch_dict['neighbors']:
                 if neighbor not in switch_dict['flows']:
-                    log.info('Neighbor: %s' % neighbor)
                     flow_dict = {
                         'idle_timeout': 0, 'hard_timeout': 0, 'table_id': 0,
                         'buffer_id': None,'match':{
