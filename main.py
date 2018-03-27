@@ -104,7 +104,6 @@ class Main(KytosNApp):
 
                     flow = flow_cls.from_dict(flow_dict, switch)
                     switch_dict['flows'][neighbor] = flow
-                    log.info('Flow %s' % flow.as_dict())
                     returned = requests.post(
                         url % dpid,
                         json={'flows':[flow.as_dict()]}
