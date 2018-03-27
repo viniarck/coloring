@@ -42,13 +42,13 @@ class Main(KytosNApp):
         r = requests.get(settings.TOPOLOGY_URL)
         if r.status_code == 200:
             links = r.json()
-            self.update_colors(links['links'])
+            self.update_colors(links['links'].values())
 
     @listen_to('kytos/topology.updated')
     def topology_updated(self, event):
         topology = event.content['topology']
         self.update_colors(
-            [{'source': l[0], 'target': l[1]} for l in topology.links]
+            [l.as_dict() for l in topology.links.values()]
         )
 
     def update_colors(self, links):
@@ -69,14 +69,10 @@ class Main(KytosNApp):
                 self.switches[switch.dpid]['neighbors'] = set()
 
         for link in links:
-            source = link['source'].split(':')
-            target = link['target'].split(':')
-            if len(source) < 9 or len(target) < 9:
-                continue
-            dpid_source = ':'.join(source[:8])
-            dpid_target = ':'.join(target[:8])
-            self.switches[dpid_source]['neighbors'].add(dpid_target)
-            self.switches[dpid_target]['neighbors'].add(dpid_source)
+            source = link['endpoint_a']['switch']
+            target = link['endpoint_b']['switch']
+            self.switches[source]['neighbors'].add(target)
+            self.switches[target]['neighbors'].add(source)
 
         # Create the flows for each neighbor of each switch and installs it
         # if not already installed
