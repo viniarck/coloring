@@ -77,18 +77,18 @@ class Main(KytosNApp):
         # Create the flows for each neighbor of each switch and installs it
         # if not already installed
         for dpid, switch_dict in self.switches.items():
+            switch = self.controller.get_switch_by_dpid(dpid)
+            if switch.ofp_version == '0x01':
+                flow_cls = Flow10
+                controller_port = Port.OFPP_CONTROLLER
+            elif switch.ofp_version == '0x04':
+                flow_cls = Flow13
+                controller_port = PortNo.OFPP_CONTROLLER
+            else:
+                continue
             for neighbor in switch_dict['neighbors']:
                 if neighbor not in switch_dict['flows']:
-                    neighbor_switch = self.controller.get_switch_by_dpid(neighbor)
-                    if neighbor_switch.ofp_version == '0x01':
-                        flow_cls = Flow10
-                        controller_port = Port.OFPP_CONTROLLER
-                    elif neighbor_switch.ofp_version == '0x04':
-                        flow_cls = Flow13
-                        controller_port = PortNo.OFPP_CONTROLLER
-                    else:
-                        continue
-                    log.info('Switch version %s' % neighbor_switch.ofp_version)
+                    log.info('Switch version %s' % switch.ofp_version)
                     log.info('Flow class %s' % flow_cls)
 
                     flow_dict = {
@@ -105,7 +105,7 @@ class Main(KytosNApp):
                             settings.COLOR_FIELD
                         )
 
-                    flow = flow_cls.from_dict(flow_dict, neighbor_switch)
+                    flow = flow_cls.from_dict(flow_dict, switch)
                     switch_dict['flows'][neighbor] = flow
                     log.info('Flow %s' % flow.as_dict())
                     returned = requests.post(
