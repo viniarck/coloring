@@ -88,9 +88,6 @@ class Main(KytosNApp):
                 continue
             for neighbor in switch_dict['neighbors']:
                 if neighbor not in switch_dict['flows']:
-                    log.info('Switch version %s' % switch.ofp_version)
-                    log.info('Flow class %s' % flow_cls)
-
                     flow_dict = {
                         'table_id': 0,
                         'match':{},
