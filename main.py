@@ -3,19 +3,17 @@
 NApp to color a network topology
 """
 
-from kytos.core import KytosEvent, KytosNApp, log, rest
+import struct
+import requests
+from flask import jsonify
+from kytos.core import KytosNApp, log, rest
 from kytos.core.helpers import listen_to
-from kytos.core.switch import Switch
 from kytos.core.interface import Interface
+from napps.amlight.coloring import settings
 from napps.kytos.of_core.v0x01.flow import Flow as Flow10
 from napps.kytos.of_core.v0x04.flow import Flow as Flow13
-from napps.amlight.coloring import settings
-from pyof.v0x04.common.port import PortNo
 from pyof.v0x01.common.phy_port import Port
-from flask import jsonify
-import requests
-import json
-import struct
+from pyof.v0x04.common.port import PortNo
 
 
 class Main(KytosNApp):
@@ -93,9 +91,9 @@ class Main(KytosNApp):
                         'match':{},
                         'priority': 50000,
                         'actions': [
-                            {'action_type':'output','port': controller_port}
+                            {'action_type':'output', 'port': controller_port}
                         ]}
-                    
+
                     flow_dict['match'][settings.COLOR_FIELD] = \
                         self.color_to_field(
                             self.switches[neighbor]['color'],
@@ -140,7 +138,7 @@ class Main(KytosNApp):
         """
         Gets the color number and returns it in a format suitable for the field
         :param color: The color of the switch (integer)
-        :param field: The field that will be used to create the flow for the 
+        :param field: The field that will be used to create the flow for the
         color
         :return: A representation of the color suitable for the given field
         """
@@ -161,6 +159,8 @@ class Main(KytosNApp):
         if field == 'nw_tos' or field == 'nw_proto':
             c = color & 0xff
             return c
+        else:
+            return color & 0xff
 
     @rest('colors')
     def rest_colors(self):
