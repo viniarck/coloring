@@ -31,16 +31,18 @@ class Main(KytosNApp):
         So, if you have any setup routine, insert it here.
         """
         self.switches = {}
-        self.execute()
+        self.execute_as_loop(1)
 
     def execute(self):
         """ Get topology through REST on initialization. Topology updates are
             executed through events.
         """
-        r = requests.get(settings.TOPOLOGY_URL)
-        if r.status_code == 200:
-            links = r.json()
-            self.update_colors(links['links'].values())
+        if ('kytos', 'topology') in self.controller.napps.keys():
+            r = requests.get(settings.TOPOLOGY_URL)
+            if r.status_code == 200:
+                links = r.json()
+                self.update_colors(links['links'].values())
+            self.execute_as_loop(-1)
 
     @listen_to('kytos/topology.updated')
     def topology_updated(self, event):
