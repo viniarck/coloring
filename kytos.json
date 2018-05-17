@@ -4,7 +4,7 @@
   "name": "coloring",
   "description": "NApp to color a network topology",
   "version": "",
-  "napp_dependencies": ["amlight/kytos_flow_manager", "kytos/flow_manager"],
+  "napp_dependencies": ["amlight/flow_stats", "kytos/flow_manager"],
   "license": "",
   "tags": [],
   "url": ""
