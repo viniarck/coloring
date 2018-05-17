@@ -8,7 +8,6 @@ import requests
 from flask import jsonify
 from kytos.core import KytosNApp, log, rest
 from kytos.core.helpers import listen_to
-from kytos.core.interface import Interface
 from napps.amlight.coloring import settings
 from napps.kytos.of_core.v0x01.flow import Flow as Flow10
 from napps.kytos.of_core.v0x04.flow import Flow as Flow13
@@ -119,21 +118,6 @@ class Main(KytosNApp):
         If you have some cleanup procedure, insert it here.
         """
         pass
-
-    @staticmethod
-    @listen_to('kytos/of_core.messages.in.ofpt_port_status')
-    def update_link_on_port_status_change(event):
-        port_status = event.message
-        reasons = ['CREATED', 'DELETED', 'MODIFIED']
-        switch = event.source.switch
-        port_no = port_status.desc.port_no
-        reason = reasons[port_status.reason.value]
-
-        if reason is 'MODIFIED':
-            interface = switch.get_interface_by_port_no(port_no.value)
-            for endpoint, _ in interface.endpoints:
-                if isinstance(endpoint, Interface):
-                    interface.delete_endpoint(endpoint)
 
     @staticmethod
     def color_to_field(color, field='dl_src'):
