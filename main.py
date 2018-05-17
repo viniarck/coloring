@@ -37,14 +37,15 @@ class Main(KytosNApp):
             executed through events.
         """
         if ('kytos', 'topology') in self.controller.napps.keys():
-            r = requests.get(settings.TOPOLOGY_URL)
-            if r.status_code == 200:
-                links = r.json()
+            response = requests.get(settings.TOPOLOGY_URL)
+            if response.status_code == 200:
+                links = response.json()
                 self.update_colors(links['links'].values())
             self.execute_as_loop(-1)
 
     @listen_to('kytos/topology.updated')
     def topology_updated(self, event):
+        """Update colors on topology update."""
         topology = event.content['topology']
         self.update_colors(
             [l.as_dict() for l in topology.links.values()]
@@ -130,26 +131,24 @@ class Main(KytosNApp):
         """
         # TODO: calculate field value for other fields
         if field == 'dl_src' or field == 'dl_dst':
-            c = color & 0xffffffffffffffff
-            int_mac = struct.pack('!Q', c)[2:]
+            color_48bits = color & 0xffffffffffffffff
+            int_mac = struct.pack('!Q', color_48bits)[2:]
             color_value = ':'.join(['%02x' % b for b in int_mac])
             return color_value.replace('00', 'ee')
         if field == 'nw_src' or field == 'nw_dst':
-            c = color & 0xffffffff
-            int_ip = struct.pack('!L', c)
+            color_32bits = color & 0xffffffff
+            int_ip = struct.pack('!L', color_32bits)
             return '.'.join(map(str, int_ip))
         if field == 'in_port' or field == 'dl_vlan' \
                 or field == 'tp_src' or field == 'tp_dst':
-            c = color & 0xffff
-            return c
+            return color & 0xffff
         if field == 'nw_tos' or field == 'nw_proto':
-            c = color & 0xff
-            return c
-        else:
             return color & 0xff
+        return color & 0xff
 
     @rest('colors')
     def rest_colors(self):
+        """ List of switch colors."""
         colors = {}
         for dpid, switch_dict in self.switches.items():
             colors[dpid] = {'color_field': settings.COLOR_FIELD,
