@@ -157,3 +157,17 @@ class Main(KytosNApp):
                                 settings.COLOR_FIELD
                             )}
         return jsonify({'colors': colors})
+
+    @staticmethod
+    @rest('/settings', methods=['GET'])
+    def return_settings():
+        """ List the SDNTrace settings
+            Return:
+            SETTINGS in JSON format
+        """
+        settings_dict = dict()
+        settings_dict['color_field'] = settings.COLOR_FIELD
+        settings_dict['coloring_interval'] = settings.COLORING_INTERVAL
+        settings_dict['topology_url'] = settings.TOPOLOGY_URL
+        settings_dict['flow_manager_url'] = settings.FLOW_MANAGER_URL
+        return jsonify(settings_dict)
