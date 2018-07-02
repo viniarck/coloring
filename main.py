@@ -37,11 +37,14 @@ class Main(KytosNApp):
             executed through events.
         """
         if ('kytos', 'topology') in self.controller.napps.keys():
-            response = requests.get(settings.TOPOLOGY_URL)
-            if response.status_code == 200:
-                links = response.json()
-                self.update_colors(links['links'].values())
-            self.execute_as_loop(-1)
+            try:
+                response = requests.get(settings.TOPOLOGY_URL)
+                if response.status_code == 200:
+                    links = response.json()
+                    self.update_colors(links['links'].values())
+                self.execute_as_loop(-1)
+            except:
+                pass
 
     @listen_to('kytos/topology.updated')
     def topology_updated(self, event):
