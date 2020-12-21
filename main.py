@@ -2,15 +2,16 @@
 
 NApp to color a network topology
 """
-
+# Check for import order disabled in pylint due to conflict
+# with isort.
+# pylint: disable=wrong-import-order
 import struct
+
 import requests
 from flask import jsonify
 from kytos.core import KytosNApp, log, rest
 from kytos.core.helpers import listen_to
 from napps.amlight.coloring import settings
-from napps.kytos.of_core.v0x01.flow import Flow as Flow10
-from napps.kytos.of_core.v0x04.flow import Flow as Flow13
 from pyof.v0x01.common.phy_port import Port
 from pyof.v0x04.common.port import PortNo
 
@@ -43,7 +44,7 @@ class Main(KytosNApp):
                     links = response.json()
                     self.update_colors(links['links'].values())
                 self.execute_as_loop(-1)
-            except:
+            except KeyError:
                 pass
 
     @listen_to('kytos/topology.updated')
@@ -51,7 +52,7 @@ class Main(KytosNApp):
         """Update colors on topology update."""
         topology = event.content['topology']
         self.update_colors(
-            [l.as_dict() for l in topology.links.values()]
+            [link.as_dict() for link in topology.links.values()]
         )
 
     def update_colors(self, links):
@@ -82,10 +83,8 @@ class Main(KytosNApp):
         for dpid, switch_dict in self.switches.items():
             switch = self.controller.get_switch_by_dpid(dpid)
             if switch.ofp_version == '0x01':
-                flow_cls = Flow10
                 controller_port = Port.OFPP_CONTROLLER
             elif switch.ofp_version == '0x04':
-                flow_cls = Flow13
                 controller_port = PortNo.OFPP_CONTROLLER
             else:
                 continue
@@ -93,10 +92,10 @@ class Main(KytosNApp):
                 if neighbor not in switch_dict['flows']:
                     flow_dict = {
                         'table_id': 0,
-                        'match':{},
+                        'match': {},
                         'priority': 50000,
                         'actions': [
-                            {'action_type':'output', 'port': controller_port}
+                            {'action_type': 'output', 'port': controller_port}
                         ]}
 
                     flow_dict['match'][settings.COLOR_FIELD] = \
@@ -105,23 +104,21 @@ class Main(KytosNApp):
                             settings.COLOR_FIELD
                         )
 
-                    flow = flow_cls.from_dict(flow_dict, switch)
-                    switch_dict['flows'][neighbor] = flow
+                    switch_dict['flows'][neighbor] = flow_dict
                     returned = requests.post(
                         url % dpid,
-                        json={'flows':[flow.as_dict()]}
+                        json={'flows': [flow_dict]}
                     )
                     if returned.status_code // 100 != 2:
                         log.error('Flow manager returned an error inserting '
-                                  'flow. Status code %s, flow id %s.' %
-                                  (returned.status_code, flow.id))
+                                  'flow. Status code %s' %
+                                  (returned.status_code,))
 
     def shutdown(self):
         """This method is executed when your napp is unloaded.
 
         If you have some cleanup procedure, insert it here.
         """
-        pass
 
     @staticmethod
     def color_to_field(color, field='dl_src'):
@@ -132,20 +129,18 @@ class Main(KytosNApp):
         color
         :return: A representation of the color suitable for the given field
         """
-        # TODO: calculate field value for other fields
-        if field == 'dl_src' or field == 'dl_dst':
+        if field in ('dl_src', 'dl_dst'):
             color_48bits = color & 0xffffffffffffffff
             int_mac = struct.pack('!Q', color_48bits)[2:]
             color_value = ':'.join(['%02x' % b for b in int_mac])
             return color_value.replace('00', 'ee')
-        if field == 'nw_src' or field == 'nw_dst':
+        if field in ('nw_src', 'nw_dst'):
             color_32bits = color & 0xffffffff
             int_ip = struct.pack('!L', color_32bits)
             return '.'.join(map(str, int_ip))
-        if field == 'in_port' or field == 'dl_vlan' \
-                or field == 'tp_src' or field == 'tp_dst':
+        if field in ('in_port', 'dl_vlan', 'tp_src', 'tp_dst'):
             return color & 0xffff
-        if field == 'nw_tos' or field == 'nw_proto':
+        if field in ('nw_tos', 'nw_proto'):
             return color & 0xff
         return color & 0xff
 
