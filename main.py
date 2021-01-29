@@ -75,8 +75,9 @@ class Main(KytosNApp):
         for link in links:
             source = link['endpoint_a']['switch']
             target = link['endpoint_b']['switch']
-            self.switches[source]['neighbors'].add(target)
-            self.switches[target]['neighbors'].add(source)
+            if source != target:
+                self.switches[source]['neighbors'].add(target)
+                self.switches[target]['neighbors'].add(source)
 
         # Create the flows for each neighbor of each switch and installs it
         # if not already installed
