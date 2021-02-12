@@ -5,6 +5,7 @@ NApp to color a network topology
 # Check for import order disabled in pylint due to conflict
 # with isort.
 # pylint: disable=wrong-import-order
+# isort:skip_file
 import struct
 
 import requests
@@ -34,18 +35,7 @@ class Main(KytosNApp):
         self.execute_as_loop(1)
 
     def execute(self):
-        """ Get topology through REST on initialization. Topology updates are
-            executed through events.
-        """
-        if ('kytos', 'topology') in self.controller.napps.keys():
-            try:
-                response = requests.get(settings.TOPOLOGY_URL)
-                if response.status_code == 200:
-                    links = response.json()
-                    self.update_colors(links['links'].values())
-                self.execute_as_loop(-1)
-            except KeyError:
-                pass
+        """ Topology updates are executed through events. """
 
     @listen_to('kytos/topology.updated')
     def topology_updated(self, event):
